@@ -1,0 +1,17 @@
+[package]
+name = "bulla_liquidity_manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.36", features = ["full"] }
+ethers = { version = "2.0", features = ["ws", "rustls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+async-trait = "0.1"
+futures = "0.3"
+reqwest = { version = "0.11", features = ["json"] }
+dotenv = "0.15"
