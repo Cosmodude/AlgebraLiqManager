@@ -1,4 +1,3 @@
-mod config;
 mod pool;
 mod price_tracker;
 mod liquidity_provider;
