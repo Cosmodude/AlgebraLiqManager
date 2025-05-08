@@ -4,7 +4,8 @@ pragma solidity 0.8.21;
 import "./interfaces/IAlgebraMintCallback.sol";
 import "./interfaces/IAlgebraPool.sol";
 import "./interfaces/IERC20.sol";
-import "./libraries/TransferHelper.sol";
+import "@uniswap/v3-periphery/libraries/TransferHelper.sol";
+
 
 /// @title LiquidityManager
 /// @notice Manages liquidity provision and allows the owner to withdraw tokens and native currency
