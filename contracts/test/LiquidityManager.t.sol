@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import "forge-std/Test.sol";
-import "../src/LiqController.sol";
+import "../src/LiqManager.sol";
 import "./mocks/MockToken.sol";
 import "./mocks/MockAlgebraPool.sol";
 
