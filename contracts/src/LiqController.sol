@@ -16,8 +16,8 @@ contract LiquidityManager is IAlgebraMintCallback, Ownable {
     address public immutable pool;
 
     constructor(address _token0, address _token1, address _pool) Ownable(msg.sender) {
-        token0 = _token0;
-        token1 = _token1;
+        // Ensure token0 is the token with lower address
+        (token0, token1) = _token0 < _token1 ? (_token0, _token1) : (_token1, _token0);
         pool = _pool;
     }
 
