@@ -4,7 +4,8 @@ out = "out"
 libs = ["lib"]
 
 remappings = [
-    "@uniswap/v3-periphery/=lib/v3-periphery/contracts/"
+    "@uniswap/v3-periphery/=lib/v3-periphery/contracts/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
 ]
 
 

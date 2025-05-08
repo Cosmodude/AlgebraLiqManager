@@ -2,7 +2,7 @@
 // copied from here https://vscode.blockscan.com/80094/0x90f79fdec42351e514c35cd93cb5f1b965585132
 pragma solidity ^0.8.0;
 
-interface IBullaPool {
+interface IAlgebraPool {
     /// @notice Safely get most important state values of Algebra Integral AMM
     /// @dev Several values exposed as a single method to save gas when accessed externally.
     /// **Important security note: this method checks reentrancy lock and should be preferred in most cases**.
