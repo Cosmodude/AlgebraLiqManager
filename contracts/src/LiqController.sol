@@ -53,11 +53,10 @@ contract LiquidityManager is IAlgebraMintCallback {
     /// @notice Callback function called by the Algebra pool after minting liquidity
     /// @param amount0Owed The amount of token0 owed to the pool
     /// @param amount1Owed The amount of token1 owed to the pool
-    /// @param data Any data passed through by the caller via the IAlgebraPoolActions#mint call
     function algebraMintCallback(
         uint256 amount0Owed,
         uint256 amount1Owed,
-        bytes calldata data
+        bytes calldata
     ) external override {
         require(msg.sender == pool, "Unauthorized callback");
 
