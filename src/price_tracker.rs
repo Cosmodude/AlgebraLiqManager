@@ -3,7 +3,7 @@ use ethers::prelude::*;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use crate::pool::Pool;
-use log::{info, error};
+use log::error;
 
 pub struct PriceTracker<P> {
     pool: Arc<Pool<P>>,
@@ -25,7 +25,7 @@ impl<P: JsonRpcClient + 'static> PriceTracker<P> {
     }
 
     pub async fn start_tracking(&self) -> Result<()> {
-        println!("Starting price tracking for pool");
+        println!("Starting price tracking for pool {:?}", self.pool.address());
         
         loop {
             match self.update_price().await {

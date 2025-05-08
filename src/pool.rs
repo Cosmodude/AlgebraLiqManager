@@ -2,7 +2,6 @@ use anyhow::Result;
 use ethers::prelude::*;
 use serde::Deserialize;
 use std::sync::Arc;
-use log::info;
 
 // Contract interface for Bulla pool
 #[derive(Clone, Debug)]
@@ -11,13 +10,14 @@ pub struct BullaPool<M> {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct GlobalState {
-    pub price: U256,  // uint160
-    pub tick: i32,    // int24
+pub struct StateOfAMM {
+    pub sqrt_price: U256,  // uint160
+    pub tick: i32,         // int24
     pub last_fee: u16,
     pub plugin_config: u8,
-    pub community_fee: u16,
-    pub unlocked: bool,
+    pub active_liquidity: U256,  // uint128
+    pub next_tick: i32,          // int24
+    pub previous_tick: i32,      // int24
 }
 
 impl<M: Middleware + 'static> BullaPool<M> {
@@ -32,25 +32,26 @@ impl<M: Middleware + 'static> BullaPool<M> {
         Self { contract }
     }
 
-    pub async fn get_global_state(&self) -> Result<GlobalState> {
-        let state: (U256, i32, u16, u8, u16, bool) = self.contract
-            .method("globalState", ())?
+    pub async fn get_state_of_amm(&self) -> Result<StateOfAMM> {
+        let state: (U256, i32, u16, u8, U256, i32, i32) = self.contract
+            .method("safelyGetStateOfAMM", ())?
             .call()
             .await?;
         
-        Ok(GlobalState {
-            price: state.0,
+        Ok(StateOfAMM {
+            sqrt_price: state.0,
             tick: state.1,
             last_fee: state.2,
             plugin_config: state.3,
-            community_fee: state.4,
-            unlocked: state.5,
+            active_liquidity: state.4,
+            next_tick: state.5,
+            previous_tick: state.6,
         })
     }
 
     pub async fn get_current_price(&self) -> Result<U256> {
-        let state = self.get_global_state().await?;
-        Ok(state.price)
+        let state = self.get_state_of_amm().await?;
+        Ok(state.sqrt_price)
     }
 }
 
@@ -77,13 +78,13 @@ impl<P: JsonRpcClient + 'static> Pool<P> {
     pub fn set_provider(&mut self, provider: Provider<P>) {
         let contract = BullaPool::new(self.address, Arc::new(provider));
         self.contract = Some(contract);
-        println!("Provider set for pool at {}", self.address);
+        println!("Provider set for pool at {:?}", self.address);
     }
 
     pub async fn get_current_price(&self, provider: &Provider<P>) -> Result<(f64, i32)> {
         if let Some(contract) = &self.contract {
-            let state = contract.get_global_state().await?;
-            let sqrt_price = state.price;
+            let state = contract.get_state_of_amm().await?;
+            let sqrt_price = state.sqrt_price;
             // Convert sqrt price (Q96.64) to actual price
             let price = (sqrt_price.as_u128() as f64 / (1u128 << 96) as f64).powi(2);
             // Adjust for token decimals (18 - 6 = 12 decimals difference)
@@ -99,5 +100,9 @@ impl<P: JsonRpcClient + 'static> Pool<P> {
         let lower_tick = current_tick - (half_ticks * self.tick_spacing);
         let upper_tick = current_tick + (half_ticks * self.tick_spacing);
         (lower_tick, upper_tick)
+    }
+
+    pub fn address(&self) -> Address {
+        self.address
     }
 } 
