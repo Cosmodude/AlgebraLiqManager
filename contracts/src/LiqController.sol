@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+pragma solidity 0.8.21;
+
+import "./interfaces/IAlgebraMintCallback.sol";
+import "./interfaces/IAlgebraPool.sol";
+import "./interfaces/IERC20.sol";
+import "./libraries/TransferHelper.sol";
+
+/// @title LiquidityManager
+/// @notice Manages liquidity provision and allows the owner to withdraw tokens and native currency
+contract LiquidityManager is IAlgebraMintCallback {
+    address public immutable token0;
+    address public immutable token1;
+    address public immutable pool;
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not authorized");
+        _;
+    }
+
+    constructor(address _token0, address _token1, address _pool) {
+        token0 = _token0;
+        token1 = _token1;
+        pool = _pool;
+        owner = msg.sender;
+    }
+
+    /// @notice Adds liquidity to the Algebra pool
+    /// @param recipient The address for which the liquidity will be created
+    /// @param bottomTick The lower tick of the position
+    /// @param topTick The upper tick of the position
+    /// @param liquidityDesired The desired amount of liquidity to mint
+    /// @param data Any data to be passed through to the callback
+    function provideLiquidity(
+        address recipient,
+        int24 bottomTick,
+        int24 topTick,
+        uint128 liquidityDesired,
+        bytes calldata data
+    ) external onlyOwner {
+        IAlgebraPool(pool).mint(
+            address(this),
+            recipient,
+            bottomTick,
+            topTick,
+            liquidityDesired,
+            data
+        );
+    }
+
+    /// @notice Callback function called by the Algebra pool after minting liquidity
+    /// @param amount0Owed The amount of token0 owed to the pool
+    /// @param amount1Owed The amount of token1 owed to the pool
+    /// @param data Any data passed through by the caller via the IAlgebraPoolActions#mint call
+    function algebraMintCallback(
+        uint256 amount0Owed,
+        uint256 amount1Owed,
+        bytes calldata data
+    ) external override {
+        require(msg.sender == pool, "Unauthorized callback");
+
+        if (amount0Owed > 0) {
+            TransferHelper.safeTransfer(token0, msg.sender, amount0Owed);
+        }
+
+        if (amount1Owed > 0) {
+            TransferHelper.safeTransfer(token1, msg.sender, amount1Owed);
+        }
+    }
+
+    /// @notice Allows the owner to withdraw specified ERC20 tokens from the contract
+    /// @param token The address of the ERC20 token to withdraw
+    /// @param amount The amount of tokens to withdraw
+    function withdrawToken(address token, uint256 amount) external onlyOwner {
+        TransferHelper.safeTransfer(token, owner, amount);
+    }
+
+    /// @notice Allows the owner to withdraw all native currency from the contract
+    function withdrawNative() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No native currency to withdraw");
+        (bool success, ) = owner.call{value: balance}("");
+        require(success, "Native currency withdrawal failed");
+    }
+
+    /// @notice Allows the owner to transfer ownership to a new address
+    /// @param newOwner The address of the new owner
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Invalid new owner");
+        owner = newOwner;
+    }
+
+    // Fallback function to accept native currency
+    receive() external payable {}
+}
