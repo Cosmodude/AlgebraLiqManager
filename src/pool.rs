@@ -105,4 +105,12 @@ impl<P: JsonRpcClient + 'static> Pool<P> {
     pub fn address(&self) -> Address {
         self.address
     }
+
+    pub fn token_a(&self) -> Address {
+        self.token_a
+    }
+
+    pub fn token_b(&self) -> Address {
+        self.token_b
+    }
 } 
