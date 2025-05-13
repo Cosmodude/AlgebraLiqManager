@@ -22,7 +22,7 @@ impl<P: JsonRpcClient + Clone + 'static> LiquidityProvider<P> {
     }
 
     pub async fn provide_liquidity(&self, amount_a: U256, amount_b: U256) -> Result<()> {
-        let (current_price, current_tick) = self.pool.get_current_price(&self.provider).await?;
+        let (current_price, current_tick) = self.pool.get_adjusted_current_price_and_tick(&self.provider).await?;
         let (bottom_tick, top_tick) = self.pool.get_tick_range(current_tick, self.num_ticks).await;
         
         info!("Providing liquidity at price {:.6}, tick range [{}, {}]", 
