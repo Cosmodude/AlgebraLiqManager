@@ -2,6 +2,7 @@ mod pool;
 mod price_tracker;
 mod liquidity_provider;
 mod rebalancer;
+mod onchain;
 
 use anyhow::Result;
 use log::{info, error};
@@ -38,8 +39,7 @@ async fn main() -> Result<()> {
     let liquidity_manager: Address = liquidity_manager.parse()?;
 
     // Create pool instance
-    let mut pool = Pool::new(pool_address, token_a, token_b, tick_spacing);
-    pool.set_provider(provider.clone());
+    let pool = Pool::new(pool_address, token_a, token_b, tick_spacing, Arc::new(provider.clone())).await?;
     let pool = Arc::new(pool);
 
     // Create liquidity provider
