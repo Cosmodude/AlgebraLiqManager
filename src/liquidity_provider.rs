@@ -60,7 +60,20 @@ impl<P: JsonRpcClient + Clone + 'static> LiquidityProvider<P> {
             provider
         );
 
-        let liquidity_desired = U128::from(amount_a.as_u128() + amount_b.as_u128());
+        let sqrt_lower = Self::tick_to_sqrt_price(bottom_tick);
+        let sqrt_upper = Self::tick_to_sqrt_price(top_tick);
+        let sqrt_current = Self::tick_to_sqrt_price(current_tick);
+      
+        let liquidity_from_token0 = (amount_a.as_u128() as f64) * (sqrt_lower * sqrt_upper) / (sqrt_upper - sqrt_lower);
+        let liquidity_from_token1 = (amount_b.as_u128() as f64) / (sqrt_upper - sqrt_lower);
+        let liquidity = if sqrt_current <= sqrt_lower {
+            liquidity_from_token0
+        } else if sqrt_current >= sqrt_upper {
+            liquidity_from_token1
+        } else {
+            liquidity_from_token0.min(liquidity_from_token1)
+        };
+        let liquidity_desired = U128::from(liquidity as u128);
         let data = Vec::<u8>::new();
 
         let provide_call = liq_manager_contract
@@ -111,5 +124,9 @@ impl<P: JsonRpcClient + Clone + 'static> LiquidityProvider<P> {
 
         info!("Liquidity removed successfully. Transaction hash: {:?}", tx.tx_hash());
         Ok(())
+    }
+
+    fn tick_to_sqrt_price(tick: i32) -> f64 {
+        1.0001_f64.powf(tick as f64 / 2.0)
     }
 } 
