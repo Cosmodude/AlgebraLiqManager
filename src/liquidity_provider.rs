@@ -2,7 +2,8 @@ use anyhow::Result;
 use ethers::prelude::*;
 use std::sync::Arc;
 use crate::pool::Pool;
-use log::{info, error};
+use crate::onchain::erc20::ERC20Token;
+use log::info;
 
 pub struct LiquidityProvider<P> {
     pool: Arc<Pool<P>>,
@@ -31,27 +32,13 @@ impl<P: JsonRpcClient + Clone + 'static> LiquidityProvider<P> {
         let token_a = self.pool.token_a();
         let token_b = self.pool.token_b();
 
-        let erc20_abi: ethers::abi::Abi = serde_json::from_str(include_str!("./onchain/abi/ERC20.json"))?;
         let provider = Arc::new(self.provider.clone());
-        let token_a_contract = Contract::new(
-            token_a,
-            erc20_abi.clone(),
-            provider.clone()
-        );
-        let token_b_contract = Contract::new(
-            token_b,
-            erc20_abi,
-            provider.clone()
-        );
+        let token_a_contract = ERC20Token::new(token_a, provider.clone());
+        let token_b_contract = ERC20Token::new(token_b, provider.clone());
 
-        token_a_contract
-            .method::<_, H256>("approve", (self.liquidity_manager_contract, amount_a))?
-            .send()
-            .await?;
-        token_b_contract
-            .method::<_, H256>("approve", (self.liquidity_manager_contract, amount_b))?
-            .send()
-            .await?;
+        // Approve tokens
+        token_a_contract.approve(self.liquidity_manager_contract, amount_a).await?;
+        token_b_contract.approve(self.liquidity_manager_contract, amount_b).await?;
 
         let liq_manager_abi: ethers::abi::Abi = serde_json::from_str(include_str!("../contracts/out/LiqManager.sol/LiquidityManager.json"))?;
         let liq_manager_contract = Contract::new(
