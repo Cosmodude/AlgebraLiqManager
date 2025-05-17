@@ -17,41 +17,35 @@ contract MockAlgebraPool is IAlgebraPool {
         (token0, token1) = _token0 < _token1 ? (_token0, _token1) : (_token1, _token0);
     }
 
-    function mint(
-        address,
-        address,
-        int24 bottomTick,
-        int24 topTick,
-        uint128 liquidityDesired,
-        bytes calldata data
-    ) external override returns (uint256 amount0, uint256 amount1, uint128 liquidityActual) {
+    function mint(address, address, int24 bottomTick, int24 topTick, uint128 liquidityDesired, bytes calldata data)
+        external
+        override
+        returns (uint256 amount0, uint256 amount1, uint128 liquidityActual)
+    {
         positions[bottomTick][topTick] += liquidityDesired;
         liquidityActual = liquidityDesired;
-        amount0 = 1000 * 10**18; // Mock amounts
-        amount1 = 1000 * 10**18;
-        
+        amount0 = 1000 * 10 ** 18; // Mock amounts
+        amount1 = 1000 * 10 ** 18;
+
         IAlgebraMintCallback(msg.sender).algebraMintCallback(amount0, amount1, data);
     }
 
-    function burn(
-        int24 bottomTick,
-        int24 topTick,
-        uint128 amount,
-        bytes calldata
-    ) external override returns (uint256 amount0, uint256 amount1) {
+    function burn(int24 bottomTick, int24 topTick, uint128 amount, bytes calldata)
+        external
+        override
+        returns (uint256 amount0, uint256 amount1)
+    {
         require(positions[bottomTick][topTick] >= amount, "Insufficient liquidity");
         positions[bottomTick][topTick] -= amount;
-        amount0 = 1000 * 10**18; // Mock amounts
-        amount1 = 1000 * 10**18;
+        amount0 = 1000 * 10 ** 18; // Mock amounts
+        amount1 = 1000 * 10 ** 18;
     }
 
-    function collect(
-        address,
-        int24 bottomTick,
-        int24 topTick,
-        uint128,
-        uint128
-    ) external override returns (uint128 amount0, uint128 amount1) {
+    function collect(address, int24 bottomTick, int24 topTick, uint128, uint128)
+        external
+        override
+        returns (uint128 amount0, uint128 amount1)
+    {
         amount0 = uint128(fees0[bottomTick][topTick]);
         amount1 = uint128(fees1[bottomTick][topTick]);
         fees0[bottomTick][topTick] = 0;
@@ -74,4 +68,4 @@ contract MockAlgebraPool is IAlgebraPool {
     function tickSpacing() external pure returns (int24) {
         return 10;
     }
-} 
+}

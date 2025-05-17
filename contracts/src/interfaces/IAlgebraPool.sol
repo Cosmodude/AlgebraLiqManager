@@ -16,7 +16,15 @@ interface IAlgebraPool {
     function safelyGetStateOfAMM()
         external
         view
-        returns (uint160 sqrtPrice, int24 tick, uint16 lastFee, uint8 pluginConfig, uint128 activeLiquidity, int24 nextTick, int24 previousTick);
+        returns (
+            uint160 sqrtPrice,
+            int24 tick,
+            uint16 lastFee,
+            uint8 pluginConfig,
+            uint128 activeLiquidity,
+            int24 nextTick,
+            int24 previousTick
+        );
 
     /// @notice Allows to easily get current reentrancy lock status
     /// @dev can be used to prevent read-only reentrancy.
@@ -36,7 +44,10 @@ interface IAlgebraPool {
     /// @return pluginConfig The current plugin config as bitmap. Each bit is responsible for enabling/disabling the hooks, the last bit turns on/off dynamic fees logic
     /// @return communityFee The community fee represented as a percent of all collected fee in thousandths, i.e. 1e-3 (so 100 is 10%)
     /// @return unlocked Reentrancy lock flag, true if the pool currently is unlocked, otherwise - false
-    function globalState() external view returns (uint160 price, int24 tick, uint16 lastFee, uint8 pluginConfig, uint16 communityFee, bool unlocked);
+    function globalState()
+        external
+        view
+        returns (uint160 price, int24 tick, uint16 lastFee, uint8 pluginConfig, uint16 communityFee, bool unlocked);
 
     /// @notice The first of the two tokens of the pool, sorted by address
     /// @return The token contract address
@@ -53,7 +64,7 @@ interface IAlgebraPool {
     /// This value is an int24 to avoid casting even though it is always positive.
     /// @return The current tick spacing
     function tickSpacing() external view returns (int24);
-    
+
     /// @notice Adds liquidity for the given recipient/bottomTick/topTick position
     /// @dev The caller of this method receives a callback in the form of IAlgebraMintCallback#algebraMintCallback
     /// in which they must pay any token0 or token1 owed for the liquidity. The amount of token0/token1 due depends
@@ -76,7 +87,6 @@ interface IAlgebraPool {
         bytes calldata data
     ) external returns (uint256 amount0, uint256 amount1, uint128 liquidityActual);
 
-
     /// @notice Burn liquidity from the sender and account tokens owed for the liquidity to the position
     /// @dev Can be used to trigger a recalculation of fees owed to a position by calling with an amount of 0
     /// @dev Fees must be collected separately via a call to #collect
@@ -86,8 +96,9 @@ interface IAlgebraPool {
     /// @param data Any data that should be passed through to the plugin
     /// @return amount0 The amount of token0 sent to the recipient
     /// @return amount1 The amount of token1 sent to the recipient
-    function burn(int24 bottomTick, int24 topTick, uint128 amount, bytes calldata data) external returns (uint256 amount0, uint256 amount1);
-
+    function burn(int24 bottomTick, int24 topTick, uint128 amount, bytes calldata data)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
     /// @notice Collects tokens owed to a position
     /// @dev Does not recompute fees earned, which must be done either via mint or burn of any amount of liquidity.
@@ -108,5 +119,4 @@ interface IAlgebraPool {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external returns (uint128 amount0, uint128 amount1);
-
-} 
+}
