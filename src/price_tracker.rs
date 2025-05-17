@@ -42,7 +42,7 @@ impl<P: JsonRpcClient + 'static> PriceTracker<P> {
     }
 
     async fn update_price(&self) -> Result<(f64, i32, u64)> {
-        let (price, tick) = self.pool.get_adjusted_current_price_and_tick(&self.provider).await?;
+        let (price, tick) = self.pool.get_adjusted_current_price_and_tick().await?;
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs();

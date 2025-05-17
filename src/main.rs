@@ -39,9 +39,7 @@ async fn main() -> Result<()> {
     let liquidity_manager: Address = liquidity_manager.parse()?;
 
     // Create pool instance
-    let pool = Pool::new(pool_address, token_a, token_b, tick_spacing, Arc::new(provider.clone())).await?;
-    let mut pool = Arc::new(pool);
-    Arc::get_mut(&mut pool).unwrap().set_provider(provider.clone());
+    let pool = Arc::new(Pool::new(pool_address, Arc::new(provider.clone()), token_a, token_b, tick_spacing).await?);
 
     // Create liquidity provider
     let liquidity_provider = Arc::new(LiquidityProvider::new(

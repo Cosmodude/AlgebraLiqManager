@@ -17,3 +17,8 @@ contract LiqManagerScript is Script {
         vm.stopBroadcast();
     }
 }
+
+// forge script script/LiqManager.s.sol:LiqManagerScript \
+//   --rpc-url https://rpc.berachain.com \
+//   --account DEV \
+//   --broadcast
