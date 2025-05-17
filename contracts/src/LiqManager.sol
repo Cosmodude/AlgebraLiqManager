@@ -7,13 +7,12 @@ import "./interfaces/IERC20.sol";
 import "@uniswap/v3-periphery/libraries/TransferHelper.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-
 /// @title LiquidityManager
 /// @notice Manages liquidity provision and allows the owner to withdraw tokens and native currency
 contract LiquidityManager is IAlgebraMintCallback, Ownable {
-    address public immutable token0;
-    address public immutable token1;
-    address public immutable pool;
+    address public token0;
+    address public token1;
+    address public pool;
 
     constructor(address _token0, address _token1, address _pool) Ownable(msg.sender) {
         // Ensure token0 is the token with lower address
@@ -34,14 +33,7 @@ contract LiquidityManager is IAlgebraMintCallback, Ownable {
         uint128 liquidityDesired,
         bytes calldata data
     ) external onlyOwner {
-        IAlgebraPool(pool).mint(
-            address(this),
-            recipient,
-            bottomTick,
-            topTick,
-            liquidityDesired,
-            data
-        );
+        IAlgebraPool(pool).mint(address(this), recipient, bottomTick, topTick, liquidityDesired, data);
     }
 
     /// @notice Withdraws liquidity and fees from a position
@@ -63,16 +55,11 @@ contract LiquidityManager is IAlgebraMintCallback, Ownable {
             bottomTick,
             topTick,
             liquidity,
-            ""  // empty bytes for data parameter
+            "" // empty bytes for data parameter
         );
 
-        (uint128 collected0, uint128 collected1) = IAlgebraPool(pool).collect(
-            recipient,
-            bottomTick,
-            topTick,
-            type(uint128).max,
-            type(uint128).max
-        );
+        (uint128 collected0, uint128 collected1) =
+            IAlgebraPool(pool).collect(recipient, bottomTick, topTick, type(uint128).max, type(uint128).max);
 
         require(amount0 + collected0 >= amount0Min, "Insufficient token0 amount");
         require(amount1 + collected1 >= amount1Min, "Insufficient token1 amount");
@@ -81,11 +68,7 @@ contract LiquidityManager is IAlgebraMintCallback, Ownable {
     /// @notice Callback function called by the Algebra pool after minting liquidity
     /// @param amount0Owed The amount of token0 owed to the pool
     /// @param amount1Owed The amount of token1 owed to the pool
-    function algebraMintCallback(
-        uint256 amount0Owed,
-        uint256 amount1Owed,
-        bytes calldata
-    ) external override {
+    function algebraMintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata) external override {
         require(msg.sender == pool, "Unauthorized callback");
 
         if (amount0Owed > 0) {
@@ -108,10 +91,23 @@ contract LiquidityManager is IAlgebraMintCallback, Ownable {
     function withdrawNative() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "No native currency to withdraw");
-        (bool success, ) = owner().call{value: balance}("");
+        (bool success,) = owner().call{value: balance}("");
         require(success, "Native currency withdrawal failed");
     }
 
     // Fallback function to accept native currency
     receive() external payable {}
+
+    /// @notice Updates the token and pool addresses
+    /// @param newToken0 The new token0 address
+    /// @param newToken1 The new token1 address
+    /// @param newPool The new pool address
+    function changeTokensAndPool(
+        address newToken0,
+        address newToken1,
+        address newPool
+    ) external onlyOwner {
+        (token0, token1) = newToken0 < newToken1 ? (newToken0, newToken1) : (newToken1, newToken0);
+        pool = newPool;
+    }
 }
