@@ -7,17 +7,15 @@ use log::error;
 
 pub struct PriceTracker<P> {
     pool: Arc<Pool<P>>,
-    provider: Provider<P>,
     current_price: RwLock<f64>,
     current_tick: RwLock<i32>,
     last_update: RwLock<u64>,
 }
 
 impl<P: JsonRpcClient + 'static> PriceTracker<P> {
-    pub fn new(pool: Arc<Pool<P>>, provider: Provider<P>) -> Self {
+    pub fn new(pool: Arc<Pool<P>>) -> Self {
         Self {
             pool,
-            provider,
             current_price: RwLock::new(0.0),
             current_tick: RwLock::new(0),
             last_update: RwLock::new(0),

@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
     ));
 
     // Create price tracker
-    let price_tracker = Arc::new(PriceTracker::new(pool.clone(), provider.clone()));
+    let price_tracker = Arc::new(PriceTracker::new(pool.clone()));
 
     // Start price tracking
     let price_tracker_clone = price_tracker.clone();
